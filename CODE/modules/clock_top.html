@@ -1,0 +1,21 @@
+<div class="module-clock-center">
+  <div class="clock-display" id="profileLiveClock">00:00:00</div>
+  <div class="clock-meta">
+    <span class="clock-date" id="profileLiveDate">SYSTEM CLOCK</span>
+    <span class="clock-tz">LOCAL TIME</span>
+  </div>
+</div>
+<script>
+(function() {
+  function updateClock() {
+    const el = document.getElementById('profileLiveClock');
+    const dateEl = document.getElementById('profileLiveDate');
+    if (!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString();
+    if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+})();
+</script>

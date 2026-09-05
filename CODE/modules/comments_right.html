@@ -1,0 +1,21 @@
+<div class="module-comments-flank">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title" style="font-size:13px;">COMMENTS</h3>
+    </div>
+    <div class="comments-section" style="margin-top:0; padding-top:0; border-top:none;">
+      <div id="commentsList" style="max-height:350px; overflow-y:auto;">Loading...</div>
+      <div class="comment-input" style="margin-top:8px;">
+        <div class="form-group">
+          <textarea id="commentText" rows="2" placeholder="Write a comment..."></textarea>
+        </div>
+        <div class="comment-toolbar" style="flex-wrap:wrap; gap:4px;">
+          <input type="file" id="commentImageUpload" accept="image/*" multiple style="display:none;">
+          <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('commentImageUpload').click()"><span class="btn-icon-inline" data-icon="camera"></span>Img</button>
+          <span id="emojiPickerContainer"></span>
+          <button type="button" class="btn btn-sm" onclick="postComment()">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

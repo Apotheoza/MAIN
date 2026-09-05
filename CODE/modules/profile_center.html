@@ -1,0 +1,25 @@
+<div class="module-profile-wrap">
+  <div class="profile-header-v2">
+    <div class="profile-pfp-wrapper" style="position:relative; display:inline-block; flex-shrink:0;">
+      {{AVATAR}}
+      {{ONLINE_STATUS}}
+    </div>
+    <div class="profile-info-v2">
+      <div class="profile-name-wrapper">
+        <h2>{{DISPLAY_NAME}}</h2>
+        {{GITHUB_BADGE}}
+        {{EDIT_BUTTON}}
+        {{FOLLOW_BUTTON}}
+      </div>
+      <div class="profile-meta-v2">Joined {{JOINED_DATE}}</div>
+      <a href="{{BROWSE_FILES_URL}}" class="profile-showroom-link">📁 Browse Files</a>
+    </div>
+  </div>
+  <div class="profile-stats-v2">
+    <span class="profile-stat-v2" id="stat-posts"><strong>{{POSTS_COUNT}}</strong> posts</span>
+    <span class="profile-stat-v2" id="stat-likes"><strong>{{LIKES_COUNT}}</strong> likes</span>
+    <span class="profile-stat-v2" style="cursor:pointer;" onclick="openFollowersModal()"><strong>{{FOLLOWERS_COUNT}}</strong> followers</span>
+    <span class="profile-stat-v2" style="cursor:pointer;" onclick="openFollowingModal()"><strong>{{FOLLOWING_COUNT}}</strong> following</span>
+    <span class="profile-stat-v2"><a href="{{TREE_URL}}"><strong>{{LINKS_COUNT}}</strong> links</a></span>
+  </div>
+</div>

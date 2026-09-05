@@ -1,0 +1,24 @@
+<div class="module-comments-wrap">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">COMMENTS</h3>
+    </div>
+    <div class="comments-section" style="margin-top:0; padding-top:0; border-top:none;">
+      <div id="commentsList">Loading...</div>
+      
+      <div class="comment-input">
+        <div class="form-group">
+          <label>Add Comment (supports /red, /bold, [color:red]text[/color])</label>
+          <textarea id="commentText" rows="3" placeholder="Write a comment..."></textarea>
+        </div>
+        <div class="comment-toolbar">
+          <input type="file" id="commentImageUpload" accept="image/*" multiple style="display:none;">
+          <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('commentImageUpload').click()"><span class="btn-icon-inline" data-icon="camera"></span>Add Images</button>
+          <span id="emojiPickerContainer"></span>
+          <span id="selectedImages" style="color:var(--text-muted); font-size:12px; flex:1;"></span>
+          <button type="button" class="btn btn-sm" onclick="postComment()">Post Comment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

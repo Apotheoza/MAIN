@@ -1,0 +1,16 @@
+<div class="module-files-wrap">
+  <div class="card">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <h3 class="card-title">FILES {{ADD_FILE_BUTTON}}</h3>
+      <div class="flex gap-2" style="align-items:center;">
+        <select id="fileSortSelect" onchange="changeFileSort(this.value)" style="background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border-color); padding:4px 8px; font-family:inherit; font-size:12px; cursor:pointer;">
+          <option value="size">Size</option>
+          <option value="alpha">Alphabetical</option>
+          <option value="date">Date Modified</option>
+          <option value="liked">Most Liked</option>
+        </select>
+      </div>
+    </div>
+    <div id="fileTree" class="file-tree">Loading...</div>
+  </div>
+</div>

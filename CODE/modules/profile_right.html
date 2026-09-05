@@ -1,0 +1,23 @@
+<div class="module-profile-flank">
+  <div class="profile-header-flank" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
+    <div class="profile-pfp-wrapper" style="position:relative; display:inline-block;">
+      {{AVATAR}}
+      {{ONLINE_STATUS}}
+    </div>
+    <div class="profile-name-wrapper" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+      <h3 style="margin:0; font-size:16px;">{{DISPLAY_NAME}}</h3>
+      {{GITHUB_BADGE}}
+      {{EDIT_BUTTON}}
+      {{FOLLOW_BUTTON}}
+    </div>
+    <div class="profile-meta-flank" style="font-size:11px; color:var(--text-muted);">Joined {{JOINED_DATE}}</div>
+    <a href="{{BROWSE_FILES_URL}}" class="profile-showroom-link" style="font-size:12px;">📁 Browse Files</a>
+  </div>
+  <div class="profile-stats-flank" style="display:flex; flex-direction:column; gap:6px; margin-top:12px; font-size:12px;">
+    <span><strong>{{POSTS_COUNT}}</strong> posts</span>
+    <span><strong>{{LIKES_COUNT}}</strong> likes</span>
+    <span style="cursor:pointer;" onclick="openFollowersModal()"><strong>{{FOLLOWERS_COUNT}}</strong> followers</span>
+    <span style="cursor:pointer;" onclick="openFollowingModal()"><strong>{{FOLLOWING_COUNT}}</strong> following</span>
+    <span><a href="{{TREE_URL}}"><strong>{{LINKS_COUNT}}</strong> links</a></span>
+  </div>
+</div>

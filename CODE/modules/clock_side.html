@@ -1,0 +1,19 @@
+<div class="module-clock-side">
+  <div class="clock-side-title">LOCAL TIME</div>
+  <div class="clock-side-display" id="profileLiveClockSide">00:00:00</div>
+  <div class="clock-side-date" id="profileLiveDateSide">SYS TIME</div>
+</div>
+<script>
+(function() {
+  function updateSideClock() {
+    const el = document.getElementById('profileLiveClockSide');
+    const dateEl = document.getElementById('profileLiveDateSide');
+    if (!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString();
+    if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+  }
+  updateSideClock();
+  setInterval(updateSideClock, 1000);
+})();
+</script>

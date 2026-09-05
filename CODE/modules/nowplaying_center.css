@@ -1,0 +1,71 @@
+.module-nowplaying-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+.nowplaying-vinyl {
+  width: 38px;
+  height: 38px;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #111 20%, #333 40%, #111 60%, #444 80%, #111 100%);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: vinylSpin 4s linear infinite;
+}
+.vinyl-center {
+  width: 10px;
+  height: 10px;
+  border-radius: 50% !important;
+  background: var(--text-primary);
+}
+@keyframes vinylSpin {
+  100% { transform: rotate(360deg); }
+}
+.nowplaying-info {
+  flex: 1;
+  min-width: 0;
+}
+.nowplaying-badge {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+.nowplaying-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nowplaying-artist {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.nowplaying-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+}
+.nowplaying-bars .bar {
+  width: 3px;
+  background: var(--accent);
+  animation: eqBars 1s ease-in-out infinite alternate;
+}
+.nowplaying-bars .bar-1 { height: 60%; animation-delay: 0.1s; }
+.nowplaying-bars .bar-2 { height: 100%; animation-delay: 0.3s; }
+.nowplaying-bars .bar-3 { height: 40%; animation-delay: 0.5s; }
+.nowplaying-bars .bar-4 { height: 80%; animation-delay: 0.2s; }
+.nowplaying-bars .bar-5 { height: 50%; animation-delay: 0.4s; }
+@keyframes eqBars {
+  0% { height: 20%; }
+  100% { height: 100%; }
+}
