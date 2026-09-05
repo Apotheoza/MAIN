@@ -1,0 +1,180 @@
+/* Fixed wrapper for right sidebar */
+.user-profile-module-item:has(.apotheoza-duomedia-right-wrapper),
+#moduleItem_duomedia_right {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: var(--flank-right-edge, calc(50vw + 500px + clamp(20px, 1.4vw, 30px))) !important;
+  right: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  z-index: 40 !important;
+  pointer-events: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: transparent !important;
+}
+
+/* Drag bar sits clearly at the top when viewing own profile */
+.user-profile-module-item:has(.apotheoza-duomedia-right-wrapper) .module-drag-bar,
+#moduleItem_duomedia_right .module-drag-bar {
+  position: relative !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
+  flex-shrink: 0 !important;
+  margin: 6px 8px 0 8px !important;
+  cursor: grab !important;
+}
+
+.apotheoza-duomedia-right-wrapper {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-evenly !important; /* media3 centered vertically */
+  align-items: center !important; /* center items horizontally in sidebar */
+  padding-left: 8px !important; /* offset on the left so it doesn't cover vertical line of main content */
+  padding-right: 8px !important; /* offset on the right edge */
+  border: none !important;
+  background: transparent !important;
+  pointer-events: auto !important;
+}
+
+/* Continuous Vertical Line on the left side between middle content and right sidebar - goes all the way to bottom */
+.apotheoza-v-line-left {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: var(--flank-right-edge, calc(50vw + 500px + clamp(20px, 1.4vw, 30px))) !important;
+  right: auto !important;
+  width: 1px !important;
+  height: 100vh !important;
+  background: var(--border-color, #333) !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+}
+
+/* Media 3: centered vertically, enlarged, evenly cut off on left and right, vertical unclipped */
+.apotheoza-media-box-right,
+#duoSlot3 {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  overflow: hidden !important; /* evenly cuts off left and right sides */
+  display: flex !important;
+  justify-content: center !important; /* keeps media 3 centered horizontally */
+  align-items: center !important;
+  pointer-events: auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  position: relative !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Media 3 enlarged: horizontally centered, evenly cut off left & right, vertically completely unclipped */
+.apotheoza-media-box-right .apotheoza-media-img {
+  width: 130% !important;
+  min-width: 130% !important;
+  max-width: none !important;
+  height: auto !important;
+  display: block !important;
+  image-rendering: pixelated;
+  transform: none !important;
+  transition: none !important;
+  pointer-events: auto !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  clip-path: none !important; /* vertical kept completely unclipped */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Cylindrical Rotating Text: centered in the right sidebar */
+.apotheoza-cylinder-section {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.apotheoza-cylinder-wrap {
+  position: relative !important;
+  perspective: 1000px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important; /* Horizontally centered */
+  min-height: 80px !important;
+  transform-style: preserve-3d !important;
+  /* Reset X angle and do Y angle instead */
+  transform: rotateY(-20deg) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.apotheoza-cylinder-row {
+  position: relative !important;
+  width: 0 !important;
+  height: 0 !important;
+  transform-style: preserve-3d !important;
+  /* Reset X angle */
+  transform: rotateX(0deg) !important;
+  margin: 9px auto !important; /* Centered with dense vertical spacing */
+  background: transparent !important;
+  border: none !important;
+}
+
+.apotheoza-cylinder-row span {
+  position: absolute !important;
+  color: var(--text-color, var(--text-primary, #ffffff)) !important; /* match textcolor */
+  font-family: 'VCR OSD Mono', monospace !important; /* match website font */
+  font-size: 14px !important;
+  font-weight: normal !important;
+  letter-spacing: 0.5px !important;
+  transform-origin: 0 0 !important;
+  white-space: pre !important;
+  backface-visibility: visible !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
+  border: none !important;
+  outline: none !important;
+}
+
+@keyframes apotheoza-spin-cw {
+  from { transform: rotateX(0deg) rotateY(0deg); }
+  to   { transform: rotateX(0deg) rotateY(360deg); }
+}
+
+@keyframes apotheoza-spin-ccw {
+  from { transform: rotateX(0deg) rotateY(360deg); }
+  to   { transform: rotateX(0deg) rotateY(0deg); }
+}
+
+@media (max-width: 1200px) {
+  .apotheoza-duomedia-right-wrapper,
+  .user-profile-module-item:has(.apotheoza-duomedia-right-wrapper),
+  #moduleItem_duomedia_right,
+  .apotheoza-v-line-left {
+    display: none !important;
+  }
+}

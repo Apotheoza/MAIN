@@ -1,0 +1,96 @@
+<div class="apotheoza-duomedia-right-wrapper is-fixed">
+  <div class="apotheoza-v-line-left"></div>
+
+  <!-- Above media 3: rotating cylindrical text from text1.txt -->
+  <div class="apotheoza-cylinder-section">
+    <div class="apotheoza-cylinder-wrap" id="cylinderWrapTop"></div>
+  </div>
+
+  <!-- Media 3 (centered vertically, aligned to left edge) -->
+  <div class="apotheoza-media-box apotheoza-media-box-right" id="duoSlot3">
+    <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media3.mp4"></video>
+  </div>
+
+  <!-- Below media 3: rotating cylindrical text from text2.txt -->
+  <div class="apotheoza-cylinder-section">
+    <div class="apotheoza-cylinder-wrap" id="cylinderWrapBottom"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  async function setupCylinder(wrapId, filePaths, defaultRows) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+
+    let rows = defaultRows;
+    for (const p of filePaths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) {
+          const raw = await res.text();
+          const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          if (lines.length > 0) {
+            rows = lines;
+            break;
+          }
+        }
+      } catch (e) {}
+    }
+
+    wrap.innerHTML = '';
+    const radius = 135;
+
+    rows.forEach((text, rowIndex) => {
+      const row = document.createElement('div');
+      row.className = 'apotheoza-cylinder-row';
+      // Each row rotates different direction from previous
+      row.style.animation = (rowIndex % 2 === 0)
+        ? 'apotheoza-spin-cw 12s linear infinite'
+        : 'apotheoza-spin-ccw 12s linear infinite';
+
+      // Make text much denser: loop characters around circumference
+      let baseStr = text.trim();
+      if (!baseStr.endsWith(' ')) baseStr += ' ';
+      let denseStr = baseStr;
+      while (denseStr.length < 52) {
+        denseStr += baseStr;
+      }
+
+      const chars = denseStr.split('');
+      const step = 360 / chars.length;
+
+      chars.forEach((ch, i) => {
+        const span = document.createElement('span');
+        span.textContent = ch === ' ' ? '\u00A0' : ch;
+        span.style.transform = `rotateY(${i * step}deg) translateZ(${radius}px)`;
+        row.appendChild(span);
+      });
+
+      wrap.appendChild(row);
+    });
+  }
+
+  const defaultTop = ["HELLO WORLD ", "TUBULAR TEXT ", "EASY TO EDIT "];
+  const defaultBottom = ["APOTHEOZA ", "TREE ARCHIVE ", "ROTATING TEXT "];
+
+  function run() {
+    const userMatch = window.location.pathname.match(/\/user\/([^\/]+)/);
+    const user = userMatch ? decodeURIComponent(userMatch[1]) : '{{USERNAME}}';
+
+    setupCylinder('cylinderWrapTop', [
+      `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text1.txt`,
+      `/api/user/${encodeURIComponent(user)}/raw?path=info/text1.txt`
+    ], defaultTop);
+
+    setupCylinder('cylinderWrapBottom', [
+      `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text2.txt`,
+      `/api/user/${encodeURIComponent(user)}/raw?path=info/text2.txt`
+    ], defaultBottom);
+  }
+
+  run();
+  window.initApotheozaRightCylinders = run;
+})();
+</script>
+<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" style="display:none;" onload="if(window.initApotheozaRightCylinders) window.initApotheozaRightCylinders();" />
