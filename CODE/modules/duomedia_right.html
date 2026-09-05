@@ -1,96 +1,139 @@
 <div class="apotheoza-duomedia-right-wrapper is-fixed">
   <div class="apotheoza-v-line-left"></div>
 
-  <!-- Above media 3: rotating cylindrical text from text1.txt -->
+  <!-- Above media 3: Halo 3D cylindrical text from writing folder (tilted down) -->
   <div class="apotheoza-cylinder-section">
-    <div class="apotheoza-cylinder-wrap" id="cylinderWrapTop"></div>
+    <div class="apotheoza-halo-scene down" id="cylinderWrapTop"></div>
   </div>
 
-  <!-- Media 3 (centered vertically, aligned to left edge) -->
+  <!-- Media 3 (centered vertically, enlarged, evenly cut off left/right) -->
   <div class="apotheoza-media-box apotheoza-media-box-right" id="duoSlot3">
     <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media3.mp4"></video>
   </div>
 
-  <!-- Below media 3: rotating cylindrical text from text2.txt -->
+  <!-- Below media 3: Halo 3D cylindrical text from writing folder (tilted up) -->
   <div class="apotheoza-cylinder-section">
-    <div class="apotheoza-cylinder-wrap" id="cylinderWrapBottom"></div>
+    <div class="apotheoza-halo-scene up" id="cylinderWrapBottom"></div>
   </div>
 </div>
 
 <script>
 (function() {
-  async function setupCylinder(wrapId, filePaths, defaultRows) {
-    const wrap = document.getElementById(wrapId);
-    if (!wrap) return;
+  async function fetchWritingData(user, fallbackFiles, defaultWords) {
+    try {
+      const res = await fetch(`/api/user/${encodeURIComponent(user)}/writing-text`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data?.lines) && data.lines.length > 0) {
+          const targetUrl = data.url || (data.path ? `/file.html?owner=${encodeURIComponent(user)}&path=${encodeURIComponent(data.path)}` : null);
+          return { lines: data.lines, url: targetUrl };
+        }
+      }
+    } catch (_) {}
 
-    let rows = defaultRows;
-    for (const p of filePaths) {
+    for (const p of fallbackFiles) {
       try {
         const res = await fetch(p);
         if (res.ok) {
           const raw = await res.text();
           const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-          if (lines.length > 0) {
-            rows = lines;
-            break;
-          }
+          if (lines.length > 0) return { lines, url: `/user/${encodeURIComponent(user)}/folder?path=main/WRITING` };
         }
-      } catch (e) {}
+      } catch (_) {}
     }
 
-    wrap.innerHTML = '';
-    const radius = 135;
+    return { lines: defaultWords, url: `/user/${encodeURIComponent(user)}/folder?path=main/WRITING` };
+  }
 
-    rows.forEach((text, rowIndex) => {
+  async function setupHaloCylinder(sceneId, user, fallbackFiles, defaultWords) {
+    const scene = document.getElementById(sceneId);
+    if (!scene) return;
+
+    const { lines: words, url: targetUrl } = await fetchWritingData(user, fallbackFiles, defaultWords);
+    scene.innerHTML = '';
+
+    if (targetUrl) {
+      scene.style.cursor = 'pointer';
+      scene.title = 'Click to view writing source file';
+      const navigateToTarget = (e) => {
+        e.stopPropagation();
+        window.location.href = targetUrl;
+      };
+      scene.onclick = navigateToTarget;
+
+      const parentSection = scene.closest('.apotheoza-cylinder-section');
+      if (parentSection) {
+        parentSection.style.cursor = 'pointer';
+        parentSection.title = 'Click to view writing source file';
+        parentSection.onclick = navigateToTarget;
+      }
+    }
+
+    const flankWidth = scene.clientWidth || scene.parentElement?.clientWidth || 360;
+    const radius = Math.min(180, Math.max(120, Math.round(flankWidth * 0.44)));
+
+    let fiveRows = [...words];
+    while (fiveRows.length < 5) {
+      fiveRows = fiveRows.concat(words);
+    }
+    fiveRows = fiveRows.slice(0, 5);
+
+    const frag = document.createDocumentFragment();
+
+    fiveRows.forEach((word) => {
       const row = document.createElement('div');
-      row.className = 'apotheoza-cylinder-row';
-      // Each row rotates different direction from previous
-      row.style.animation = (rowIndex % 2 === 0)
-        ? 'apotheoza-spin-cw 12s linear infinite'
-        : 'apotheoza-spin-ccw 12s linear infinite';
+      row.className = 'apotheoza-halo-row';
 
-      // Make text much denser: loop characters around circumference
-      let baseStr = text.trim();
-      if (!baseStr.endsWith(' ')) baseStr += ' ';
-      let denseStr = baseStr;
-      while (denseStr.length < 52) {
-        denseStr += baseStr;
+      const cylinder = document.createElement('div');
+      cylinder.className = 'apotheoza-halo-cylinder';
+
+      let baseStr = word.trim().replace(/\s+/g, ' ');
+      if (!baseStr.endsWith(' ') && !baseStr.endsWith('•') && !baseStr.endsWith('-')) {
+        baseStr += ' ';
       }
 
-      const chars = denseStr.split('');
-      const step = 360 / chars.length;
+      // Seamless 3D perimeter density without excessive off-screen glyph stacking
+      const targetCount = 58;
+      const repeatCount = Math.max(2, Math.ceil(targetCount / baseStr.length));
+      const fullText = baseStr.repeat(repeatCount);
+      const chars = fullText.split('');
+      const n = chars.length;
+      const stepAngle = 360 / n;
 
       chars.forEach((ch, i) => {
         const span = document.createElement('span');
+        span.className = 'apotheoza-halo-glyph' + (ch === ' ' ? ' is-space' : '');
         span.textContent = ch === ' ' ? '\u00A0' : ch;
-        span.style.transform = `rotateY(${i * step}deg) translateZ(${radius}px)`;
-        row.appendChild(span);
+        span.style.transform = `rotateY(${stepAngle * i}deg) translateZ(${radius}px) translate(-50%, -50%)`;
+        cylinder.appendChild(span);
       });
 
-      wrap.appendChild(row);
+      row.appendChild(cylinder);
+      frag.appendChild(row);
     });
+
+    scene.appendChild(frag);
   }
 
-  const defaultTop = ["HELLO WORLD ", "TUBULAR TEXT ", "EASY TO EDIT "];
-  const defaultBottom = ["APOTHEOZA ", "TREE ARCHIVE ", "ROTATING TEXT "];
+  const defaultTop = ["HELLO WORLD", "TUBULAR TEXT", "EASY TO EDIT"];
+  const defaultBottom = ["APOTHEOZA", "TREE ARCHIVE", "ROTATING TEXT"];
 
-  function run() {
-    const userMatch = window.location.pathname.match(/\/user\/([^\/]+)/);
-    const user = userMatch ? decodeURIComponent(userMatch[1]) : '{{USERNAME}}';
+  function init() {
+    const match = window.location.pathname.match(/\/user\/([^\/]+)/);
+    const user = match ? decodeURIComponent(match[1]) : '{{USERNAME}}';
 
-    setupCylinder('cylinderWrapTop', [
+    setupHaloCylinder('cylinderWrapTop', user, [
       `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text1.txt`,
       `/api/user/${encodeURIComponent(user)}/raw?path=info/text1.txt`
     ], defaultTop);
 
-    setupCylinder('cylinderWrapBottom', [
+    setupHaloCylinder('cylinderWrapBottom', user, [
       `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text2.txt`,
       `/api/user/${encodeURIComponent(user)}/raw?path=info/text2.txt`
     ], defaultBottom);
   }
 
-  run();
-  window.initApotheozaRightCylinders = run;
+  init();
+  window.initApotheozaRightCylinders = init;
 })();
 </script>
-<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" style="display:none;" onload="if(window.initApotheozaRightCylinders) window.initApotheozaRightCylinders();" />

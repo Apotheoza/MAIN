@@ -86,12 +86,12 @@
   width: 100%;
   background: transparent !important;
   transform: translateY(-20%);
-  margin-bottom: -15%;
+  margin-bottom: -10%;
 }
 
 #duoSlot1 .apotheoza-media-img {
-  clip-path: inset(20% 0 0 0); /* trim 20% from top */
-  margin-top: -20%; /* remove empty top space from crop */
+  clip-path: inset(16% 0 0 0); /* trim 20% from top */
+  margin-top: -16%; /* remove empty top space from crop */
 }
 
 /* Crop 5% off the bottom of media 2 */
@@ -100,7 +100,7 @@
   z-index: 1 !important; /* Lower priority so media 1 takes priority */
   width: 100%;
   background: transparent !important;
-  margin-top: -15%;
+  margin-top: -10%;
 }
 
 #duoSlot2 .apotheoza-media-img {

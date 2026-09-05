@@ -59,7 +59,7 @@
   z-index: 50 !important;
 }
 
-/* Media 3: centered vertically, enlarged, evenly cut off on left and right, vertical unclipped */
+/* Media 3: centered vertically, moved up 7%, enlarged, evenly cut off on left and right, vertical unclipped */
 .apotheoza-media-box-right,
 #duoSlot3 {
   width: 100% !important;
@@ -77,6 +77,11 @@
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+  transform: translateY(-7%) !important; /* moved slightly up by 7% */
+  /* =========================================================================
+     [Z-INDEX PRIORITY] Media 3 is set to z-index: 1 so text (z-index: 25) layers on top
+     ========================================================================= */
+  z-index: 1 !important;
 }
 
 /* Media 3 enlarged: horizontally centered, evenly cut off left & right, vertically completely unclipped */
@@ -99,7 +104,12 @@
   margin-bottom: 0 !important;
 }
 
-/* Cylindrical Rotating Text: centered in the right sidebar */
+/* Halo 3D Cylinders (Top & Bottom of Right Flank) - dense 5 rows */
+:root {
+  --halo-row-h: 15px; /* height of each text row */
+  --halo-row-gap: 1px; /* gap between rows (closer together) */
+}
+
 .apotheoza-cylinder-section {
   width: 100% !important;
   display: flex !important;
@@ -111,63 +121,115 @@
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+  /* =========================================================================
+     [Z-INDEX PRIORITY] Rotating text has higher priority (z-index: 25) than media3 (z-index: 1)
+     ========================================================================= */
+  position: relative !important;
+  z-index: 25 !important;
 }
 
-.apotheoza-cylinder-wrap {
-  position: relative !important;
-  perspective: 1000px !important;
+/* =============================================================================
+   [MOVING Y POSITION (UP/DOWN)]
+   - To move TOP cylinder lower/higher: change translateY(50px) below
+   ============================================================================= */
+.apotheoza-cylinder-section:first-of-type {
+  transform: translateY(50px) !important; /* Top text moved lower towards middle */
+}
+
+/* =============================================================================
+   [MOVING Y POSITION (UP/DOWN)]
+   - To move BOTTOM cylinder higher/lower: change translateY(-50px) below
+   ============================================================================= */
+.apotheoza-cylinder-section:last-of-type {
+  transform: translateY(-50px) !important; /* Bottom text moved higher towards middle */
+}
+
+.apotheoza-halo-scene {
   display: flex !important;
   flex-direction: column !important;
+  gap: var(--halo-row-gap, 1px) !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 0 auto !important; /* Horizontally centered */
-  min-height: 80px !important;
-  transform-style: preserve-3d !important;
-  /* Reset X angle and do Y angle instead */
-  transform: rotateY(-20deg) !important;
+  width: 100% !important;
+  background: transparent !important;
   pointer-events: none !important;
   user-select: none !important;
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
 }
 
-.apotheoza-cylinder-row {
+.apotheoza-halo-scene.down {
+  --tilt-x: 8deg;
+  --tilt-z: -1.5deg;
+}
+
+.apotheoza-halo-scene.up {
+  --tilt-x: -8deg;
+  --tilt-z: 1.5deg;
+}
+
+.apotheoza-halo-row {
   position: relative !important;
+  width: 100% !important;
+  height: var(--halo-row-h, 15px) !important;
+  perspective: 900px !important;
+  perspective-origin: 50% 50% !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.apotheoza-halo-cylinder {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
   width: 0 !important;
   height: 0 !important;
   transform-style: preserve-3d !important;
-  /* Reset X angle */
-  transform: rotateX(0deg) !important;
-  margin: 9px auto !important; /* Centered with dense vertical spacing */
-  background: transparent !important;
-  border: none !important;
+  transform: translate(-50%, -50%) rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg));
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
 }
 
-.apotheoza-cylinder-row span {
+.apotheoza-halo-row:nth-child(even) .apotheoza-halo-cylinder {
+  animation-name: apotheoza-halo-spin-cw !important;
+  animation-duration: 9s !important;
+}
+
+.apotheoza-halo-row:nth-child(odd) .apotheoza-halo-cylinder {
+  animation-name: apotheoza-halo-spin-ccw !important;
+  animation-duration: 9s !important;
+}
+
+@keyframes apotheoza-halo-spin-cw {
+  from { transform: translate(-50%, -50%) rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg)) rotateY(0deg); }
+  to   { transform: translate(-50%, -50%) rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg)) rotateY(360deg); }
+}
+
+@keyframes apotheoza-halo-spin-ccw {
+  from { transform: translate(-50%, -50%) rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg)) rotateY(360deg); }
+  to   { transform: translate(-50%, -50%) rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg)) rotateY(0deg); }
+}
+
+.apotheoza-halo-glyph {
   position: absolute !important;
-  color: var(--text-color, var(--text-primary, #ffffff)) !important; /* match textcolor */
-  font-family: 'VCR OSD Mono', monospace !important; /* match website font */
-  font-size: 14px !important;
-  font-weight: normal !important;
-  letter-spacing: 0.5px !important;
+  top: 0 !important;
+  left: 0 !important;
   transform-origin: 0 0 !important;
-  white-space: pre !important;
-  backface-visibility: visible !important;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
-  border: none !important;
-  outline: none !important;
-}
-
-@keyframes apotheoza-spin-cw {
-  from { transform: rotateX(0deg) rotateY(0deg); }
-  to   { transform: rotateX(0deg) rotateY(360deg); }
-}
-
-@keyframes apotheoza-spin-ccw {
-  from { transform: rotateX(0deg) rotateY(360deg); }
-  to   { transform: rotateX(0deg) rotateY(0deg); }
+  white-space: nowrap !important;
+  /* =========================================================================
+     [TEXT COLOR & GLOW COLOR] Text: #a80020 | Glow: #f87858
+     ========================================================================= */
+  color: #a80020 !important;
+  font-family: 'VCR OSD Mono', monospace !important;
+  font-size: 12.5px !important; /* slightly smaller font */
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
+  text-shadow:
+    0 0 2px #a80020,
+    0 0 6px #f87858,
+    0 0 12px #a80020 !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }
 
 @media (max-width: 1200px) {

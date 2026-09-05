@@ -34,8 +34,8 @@
 
 .module-socials-top-status {
   font-size: 11px;
-  color: #00ff66;
-  text-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
+  color: var(--text-primary);
+  text-shadow: 0 0 5px var(--text-primary);
 }
 
 .module-socials-top-desc {
