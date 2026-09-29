@@ -61,7 +61,232 @@
     return null;
   }
 
-  async function setupHaloCylinder(sceneId, user, filePaths, defaultWords) {
+  function createShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  function createProgram(gl, vsSource, fsSource) {
+    const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    if (!vs || !fs) return null;
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      gl.deleteProgram(prog);
+      return null;
+    }
+    return prog;
+  }
+
+  function makePerspective(fovRad, aspect, near, far) {
+    const f = Math.tan(Math.PI * 0.5 - 0.5 * fovRad);
+    const rangeInv = 1.0 / (near - far);
+    return [
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (near + far) * rangeInv, -1,
+      0, 0, near * far * rangeInv * 2, 0
+    ];
+  }
+
+  // Rasterize 5 text lines ONCE onto an offscreen 2D canvas texture
+  function rasterizeTextTextureOnce(gl, fiveRows) {
+    const texCanvas = document.createElement('canvas');
+    texCanvas.width = 1024;
+    texCanvas.height = 256;
+    const ctx = texCanvas.getContext('2d');
+    ctx.clearRect(0, 0, texCanvas.width, texCanvas.height);
+
+    ctx.font = 'bold 24px "VCR OSD Mono", monospace';
+    ctx.fillStyle = '#B05348';
+    ctx.shadowColor = '#f87858';
+    ctx.shadowBlur = 4;
+    ctx.textBaseline = 'middle';
+
+    const rowH = texCanvas.height / 5;
+    for (let i = 0; i < 5; i++) {
+      const lineText = (fiveRows[i] || 'APOTHEOZA ARCHIVE').toUpperCase().replace(/\s+/g, ' ').trim();
+      const spacedText = lineText + '     ';
+      const textMetrics = ctx.measureText(spacedText);
+      const textWidth = Math.max(30, Math.ceil(textMetrics.width));
+      const repeats = Math.ceil(texCanvas.width / textWidth) + 1;
+      const fullText = spacedText.repeat(repeats);
+      const y = i * rowH + rowH * 0.5;
+      ctx.fillText(fullText, 0, y);
+    }
+
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texCanvas);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    return texture;
+  }
+
+  // Build cylinder 3D mesh (5 stacked cylinder rings)
+  function buildCylinderRingsMesh(gl) {
+    const positions = [];
+    const texCoords = [];
+    const ringIndices = [];
+    const indices = [];
+
+    const numRings = 5;
+    const radialSegs = 48;
+    const radius = 1.15;
+    const ringHeight = 0.17;
+    const ringSpacing = 0.22;
+
+    let vertexOffset = 0;
+
+    for (let r = 0; r < numRings; r++) {
+      const centerY = (2.0 - r) * ringSpacing;
+      const yTop = centerY + ringHeight * 0.5;
+      const yBottom = centerY - ringHeight * 0.5;
+      const vTop = r / numRings;
+      const vBottom = (r + 1) / numRings;
+
+      const ringStartVertex = vertexOffset;
+
+      for (let s = 0; s <= radialSegs; s++) {
+        const u = s / radialSegs;
+        const theta = (s / radialSegs) * Math.PI * 2.0;
+        const x = Math.sin(theta) * radius;
+        const z = Math.cos(theta) * radius;
+
+        // Top vertex
+        positions.push(x, yTop, z);
+        texCoords.push(u, vTop);
+        ringIndices.push(r);
+
+        // Bottom vertex
+        positions.push(x, yBottom, z);
+        texCoords.push(u, vBottom);
+        ringIndices.push(r);
+
+        vertexOffset += 2;
+      }
+
+      for (let s = 0; s < radialSegs; s++) {
+        const i0 = ringStartVertex + s * 2;
+        const i1 = i0 + 1;
+        const i2 = i0 + 2;
+        const i3 = i0 + 3;
+
+        indices.push(i0, i1, i2);
+        indices.push(i2, i1, i3);
+      }
+    }
+
+    const posBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    const tcBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tcBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+
+    const ringBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, ringBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ringIndices), gl.STATIC_DRAW);
+
+    const idxBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+    return {
+      posBuffer,
+      tcBuffer,
+      ringBuffer,
+      idxBuffer,
+      count: indices.length
+    };
+  }
+
+  const VS_SOURCE = `
+    attribute vec3 a_position;
+    attribute vec2 a_texCoord;
+    attribute float a_ringIndex;
+
+    uniform float u_time;
+    uniform vec2 u_tilt;
+    uniform mat4 u_projection;
+
+    varying vec2 v_texCoord;
+    varying float v_normalZ;
+
+    void main() {
+      v_texCoord = a_texCoord;
+
+      // Even rows CW (+), Odd rows CCW (-)
+      float dir = mod(a_ringIndex, 2.0) == 0.0 ? 1.0 : -1.0;
+      float rot = u_time * 0.45 * dir + a_ringIndex * 0.25;
+
+      float cosR = cos(rot);
+      float sinR = sin(rot);
+      float rx = a_position.x * cosR + a_position.z * sinR;
+      float rz = -a_position.x * sinR + a_position.z * cosR;
+      float ry = a_position.y;
+
+      // Normal Z before tilt (discards back of cylinder facing away from viewer)
+      v_normalZ = rz;
+
+      // Tilt around X axis
+      float cosX = cos(u_tilt.x);
+      float sinX = sin(u_tilt.x);
+      float ty = ry * cosX - rz * sinX;
+      float tz = ry * sinX + rz * cosX;
+
+      // Tilt around Z axis
+      float cosZ = cos(u_tilt.y);
+      float sinZ = sin(u_tilt.y);
+      float fx = rx * cosZ - ty * sinZ;
+      float fy = rx * sinZ + ty * cosZ;
+      float fz = tz;
+
+      // Perspective placement (camera distance 3.2)
+      vec4 pos = vec4(fx, fy, fz - 3.2, 1.0);
+      gl_Position = u_projection * pos;
+    }
+  `;
+
+  const FS_SOURCE = `
+    precision mediump float;
+
+    varying vec2 v_texCoord;
+    varying float v_normalZ;
+
+    uniform sampler2D u_texture;
+    uniform float u_hover;
+
+    void main() {
+      // Discard backface vertices with GPU hardware speed (equivalent to backface-visibility: hidden)
+      if (v_normalZ < 0.0) discard;
+
+      vec4 col = texture2D(u_texture, v_texCoord);
+      if (col.a < 0.08) discard;
+
+      if (u_hover > 0.5) {
+        col.rgb = mix(col.rgb, vec3(1.0, 0.47, 0.41), 0.4);
+      }
+
+      gl_FragColor = col;
+    }
+  `;
+
+  async function setupHaloCylinder(sceneId, user, filePaths, defaultWords, tiltXDeg, tiltZDeg) {
     const scene = document.getElementById(sceneId);
     if (!scene) return;
 
@@ -87,10 +312,6 @@
       fileInfo = { file: 'WRITING', path: 'main/WRITING', url: `/folder.html?owner=${encodeURIComponent(user)}&path=main/WRITING` };
     }
 
-    scene.innerHTML = '';
-    const flankWidth = scene.clientWidth || scene.parentElement?.clientWidth || 360;
-    const radius = Math.min(180, Math.max(120, Math.round(flankWidth * 0.44)));
-
     // Target URL to forward when clicking the text
     const targetUrl = fileInfo?.url || (fileInfo?.path
       ? `/file.html?owner=${encodeURIComponent(user)}&path=${encodeURIComponent(fileInfo.path)}`
@@ -104,6 +325,7 @@
       window.location.href = targetUrl;
     };
 
+    scene.innerHTML = '';
     scene.style.cursor = 'pointer';
     scene.title = `Source: ${fileInfo?.file || 'Writing'} (Click to view)`;
     scene.onclick = forwardToSource;
@@ -115,10 +337,6 @@
       parentSection.onclick = forwardToSource;
     }
 
-    // Remove any leftover link tags if present
-    const oldLink = scene.parentElement?.querySelector('.apotheoza-cylinder-source-link');
-    if (oldLink) oldLink.remove();
-
     // Ensure exactly 5 rows for rich cylinder stack
     let fiveRows = [...words];
     while (fiveRows.length < 5) {
@@ -126,60 +344,144 @@
     }
     fiveRows = fiveRows.slice(0, 5);
 
-    fiveRows.forEach((word) => {
-      const row = document.createElement('div');
-      row.className = 'apotheoza-halo-row';
+    // Create WebGL canvas
+    const canvas = document.createElement('canvas');
+    canvas.className = 'apotheoza-cylinder-canvas';
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    canvas.style.height = '110px';
+    canvas.style.cursor = 'pointer';
+    canvas.title = `Source: ${fileInfo?.file || 'Writing'} (Click to view)`;
+    canvas.onclick = forwardToSource;
+    scene.appendChild(canvas);
 
-      const cylinder = document.createElement('div');
-      cylinder.className = 'apotheoza-halo-cylinder';
+    const gl = canvas.getContext('webgl', { alpha: true, antialias: true, depth: false }) ||
+               canvas.getContext('experimental-webgl', { alpha: true, antialias: true, depth: false });
 
-      // Clean spacing between repeated phrases
-      let baseStr = word.replace(/\s+/g, ' ').trim() + '   ';
+    if (!gl) {
+      // Graceful fallback if WebGL unsupported
+      scene.innerHTML = fiveRows.map(w => `<div style="font-family:'VCR OSD Mono',monospace;color:#B05348;font-size:12px;text-align:center;">${w}</div>`).join('');
+      return;
+    }
 
-      // Denser glyph count: 64 characters per ring for dense text geometry
-      const targetCount = 64;
-      const repeatCount = Math.max(2, Math.ceil(targetCount / baseStr.length));
-      const fullText = baseStr.repeat(repeatCount).slice(0, targetCount);
-      const chars = fullText.split('');
-      const n = chars.length;
+    // Wait for custom font to load before rasterizing once
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
 
-      chars.forEach((ch, i) => {
-        const span = document.createElement('span');
-        span.className = 'apotheoza-halo-glyph' + (ch === ' ' ? ' is-space' : '');
-        span.textContent = ch === ' ' ? '\u00A0' : ch;
-        const angle = (360 / n) * i;
-        span.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
-        cylinder.appendChild(span);
-      });
+    // Rasterize text lines ONCE onto WebGL texture
+    const texture = rasterizeTextTextureOnce(gl, fiveRows);
+    const mesh = buildCylinderRingsMesh(gl);
+    const prog = createProgram(gl, VS_SOURCE, FS_SOURCE);
+    if (!prog) return;
 
-      row.appendChild(cylinder);
-      scene.appendChild(row);
-    });
+    gl.useProgram(prog);
 
-    // CPU Optimization: Pause rotation when offscreen or hidden in background tab
+    const aPos = gl.getAttribLocation(prog, 'a_position');
+    const aTc = gl.getAttribLocation(prog, 'a_texCoord');
+    const aRing = gl.getAttribLocation(prog, 'a_ringIndex');
+
+    const uTime = gl.getUniformLocation(prog, 'u_time');
+    const uTilt = gl.getUniformLocation(prog, 'u_tilt');
+    const uProj = gl.getUniformLocation(prog, 'u_projection');
+    const uTex = gl.getUniformLocation(prog, 'u_texture');
+    const uHover = gl.getUniformLocation(prog, 'u_hover');
+
+    gl.uniform2f(uTilt, (tiltXDeg * Math.PI) / 180, (tiltZDeg * Math.PI) / 180);
+    gl.uniform1i(uTex, 0);
+
+    let isHovered = 0.0;
+    canvas.addEventListener('mouseenter', () => { isHovered = 1.0; });
+    canvas.addEventListener('mouseleave', () => { isHovered = 0.0; });
+
+    let isVisible = true;
+    let animId = null;
+    let startTime = performance.now();
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(160, Math.round(rect.width || scene.clientWidth || 360));
+      const h = Math.max(80, Math.round(rect.height || 110));
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function render(now) {
+      if (!isVisible || document.hidden) {
+        animId = null;
+        return;
+      }
+
+      resizeCanvas();
+
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.useProgram(prog);
+
+      const elapsed = (now - startTime) * 0.001;
+      gl.uniform1f(uTime, elapsed);
+      gl.uniform1f(uHover, isHovered);
+
+      const aspect = canvas.width / canvas.height;
+      const proj = makePerspective((42 * Math.PI) / 180, aspect, 0.1, 50.0);
+      gl.uniformMatrix4fv(uProj, false, new Float32Array(proj));
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.posBuffer);
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.tcBuffer);
+      gl.enableVertexAttribArray(aTc);
+      gl.vertexAttribPointer(aTc, 2, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.ringBuffer);
+      gl.enableVertexAttribArray(aRing);
+      gl.vertexAttribPointer(aRing, 1, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.idxBuffer);
+      gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_SHORT, 0);
+
+      animId = requestAnimationFrame(render);
+    }
+
+    function startAnimation() {
+      if (!animId && isVisible && !document.hidden) {
+        animId = requestAnimationFrame(render);
+      }
+    }
+
+    function stopAnimation() {
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    }
+
     if (typeof IntersectionObserver !== 'undefined' && parentSection) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          const isVisible = entry.isIntersecting && !document.hidden;
-          const cylinders = scene.querySelectorAll('.apotheoza-halo-cylinder');
-          cylinders.forEach(c => {
-            c.style.animationPlayState = isVisible ? 'running' : 'paused';
-          });
+          isVisible = entry.isIntersecting;
+          if (isVisible) startAnimation();
+          else stopAnimation();
         });
       }, { threshold: 0.05 });
       observer.observe(parentSection);
     }
-  }
 
-  // Global tab visibility listener to pause CPU consumption in background tabs
-  if (!window._apotheozaVisibilityListenerAttached) {
-    window._apotheozaVisibilityListenerAttached = true;
     document.addEventListener('visibilitychange', () => {
-      const isVisible = !document.hidden;
-      document.querySelectorAll('.apotheoza-halo-cylinder').forEach(c => {
-        c.style.animationPlayState = isVisible ? 'running' : 'paused';
-      });
+      if (document.hidden) stopAnimation();
+      else if (isVisible) startAnimation();
     });
+
+    startAnimation();
   }
 
   const defaultTop = ["HELLO WORLD", "TUBULAR TEXT", "EASY TO EDIT"];
@@ -192,12 +494,12 @@
     setupHaloCylinder('cylinderWrapTop', user, [
       `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text1.txt`,
       `/api/user/${encodeURIComponent(user)}/raw?path=info/text1.txt`
-    ], defaultTop);
+    ], defaultTop, 8.0, -1.5);
 
     setupHaloCylinder('cylinderWrapBottom', user, [
       `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text2.txt`,
       `/api/user/${encodeURIComponent(user)}/raw?path=info/text2.txt`
-    ], defaultBottom);
+    ], defaultBottom, -8.0, 1.5);
   }
 
   run();
