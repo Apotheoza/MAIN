@@ -1,0 +1,32 @@
+.module-banner-side {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  font-size: 11px;
+}
+.banner-side-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.banner-pulse {
+  width: 7px;
+  height: 7px;
+  background: var(--success, #00ff66);
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--success, #00ff66);
+}
+.banner-tag {
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+.banner-side-text {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}

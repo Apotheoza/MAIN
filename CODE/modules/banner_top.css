@@ -1,0 +1,30 @@
+.module-banner-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+.banner-pulse {
+  width: 8px;
+  height: 8px;
+  background: var(--success, #00ff66);
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--success, #00ff66);
+}
+.banner-tag {
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+.banner-text {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

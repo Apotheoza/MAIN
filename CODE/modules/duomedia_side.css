@@ -1,0 +1,119 @@
+/* Fixed sizing for host module item in the left flank */
+.user-profile-module-item:has(.apotheoza-duomedia-wrapper),
+#moduleItem_duomedia_left {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  width: var(--flank-left-edge, calc(50vw - 500px - clamp(20px, 1.4vw, 30px))) !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  z-index: 40 !important;
+  pointer-events: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: transparent !important;
+}
+
+/* Drag bar sits clearly at the top when viewing own profile */
+.user-profile-module-item:has(.apotheoza-duomedia-wrapper) .module-drag-bar,
+#moduleItem_duomedia_left .module-drag-bar {
+  position: relative !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
+  flex-shrink: 0 !important;
+  margin: 6px 8px 0 8px !important;
+  cursor: grab !important;
+}
+
+/* Continuous vertical divider between left sidebar and main content - goes all the way to bottom */
+.apotheoza-v-line {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: var(--flank-left-edge, calc(50vw - 500px - clamp(20px, 1.4vw, 30px))) !important;
+  right: auto !important;
+  width: 1px !important;
+  height: 100vh !important;
+  background: var(--border-color, #333) !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+}
+
+/* Inner wrapper spanning from left edge of screen to middle content */
+.apotheoza-duomedia-wrapper {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+  padding-top: 16px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important; /* No gap between video and vertical line */
+  background: transparent !important;
+  pointer-events: auto !important;
+}
+
+.apotheoza-media-box {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.apotheoza-media-img {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  image-rendering: pixelated;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Media 1: trimmed 20% from top, moved up by 20%, takes priority when overlap occurs */
+#duoSlot1 {
+  position: relative !important;
+  z-index: 10 !important; /* Higher priority than media 2 */
+  width: 100%;
+  background: transparent !important;
+  transform: translateY(-20%);
+  margin-bottom: -15%;
+}
+
+#duoSlot1 .apotheoza-media-img {
+  clip-path: inset(20% 0 0 0); /* trim 20% from top */
+  margin-top: -20%; /* remove empty top space from crop */
+}
+
+/* Crop 5% off the bottom of media 2 */
+#duoSlot2 {
+  position: relative !important;
+  z-index: 1 !important; /* Lower priority so media 1 takes priority */
+  width: 100%;
+  background: transparent !important;
+  margin-top: -15%;
+}
+
+#duoSlot2 .apotheoza-media-img {
+  clip-path: inset(8% 0 5% 0);
+  margin-bottom: -5%;
+   margin-top: -8%;
+}
+
+@media (max-width: 1200px) {
+  .apotheoza-duomedia-wrapper,
+  .user-profile-module-item:has(.apotheoza-duomedia-wrapper),
+  #moduleItem_duomedia_left,
+  .apotheoza-v-line {
+    display: none !important;
+  }
+}

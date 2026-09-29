@@ -1,0 +1,24 @@
+.module-clock-side {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.clock-side-title {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.clock-side-display {
+  font-family: 'VCR OSD Mono', monospace;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.clock-side-date {
+  font-size: 10px;
+  color: var(--text-muted);
+}
