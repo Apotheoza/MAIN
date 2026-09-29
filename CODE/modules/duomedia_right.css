@@ -38,8 +38,7 @@
   flex-direction: column !important;
   justify-content: space-evenly !important; /* media3 centered vertically */
   align-items: center !important; /* center items horizontally in sidebar */
-  padding-left: 8px !important; /* offset on the left so it doesn't cover vertical line of main content */
-  padding-right: 8px !important; /* offset on the right edge */
+  padding: 0 !important;
   border: none !important;
   background: transparent !important;
   pointer-events: auto !important;
@@ -47,6 +46,7 @@
 
 /* Continuous Vertical Line on the left side between middle content and right sidebar - goes all the way to bottom */
 .apotheoza-v-line-left {
+  display: block !important;
   position: fixed !important;
   top: 0 !important;
   bottom: 0 !important;
@@ -57,6 +57,11 @@
   background: var(--border-color, #333) !important;
   pointer-events: none !important;
   z-index: 50 !important;
+}
+
+/* Hide hyperlink text next to rings */
+.apotheoza-cylinder-source-link {
+  display: none !important;
 }
 
 /* Media 3: centered vertically, moved up 7%, enlarged, evenly cut off on left and right, vertical unclipped */
@@ -124,9 +129,9 @@
   z-index: 25 !important;
 }
 
-/* Top cylinder offset & extended UP click area */
+/* Top cylinder offset & extended UP click area - moved further UP away from vertical center */
 .apotheoza-cylinder-section:has(+ .apotheoza-media-box-right) {
-  transform: translateY(95px) !important;
+  transform: translateY(110px) !important;
   padding-top: 140px !important;
   margin-top: -140px !important;
 }
@@ -143,9 +148,9 @@
   z-index: 25;
 }
 
-/* Bottom cylinder offset & extended DOWN click area */
+/* Bottom cylinder offset & extended DOWN click area - moved further DOWN away from vertical center */
 .apotheoza-media-box-right + .apotheoza-cylinder-section {
-  transform: translateY(-150px) !important;
+  transform: translateY(-180px) !important;
   padding-bottom: 240px !important;
   margin-bottom: -240px !important;
 }
@@ -174,6 +179,10 @@
   cursor: pointer !important;
   user-select: none !important;
   overflow: visible !important;
+  perspective: 900px !important;
+  perspective-origin: 50% 50% !important;
+  transform-style: preserve-3d !important;
+  will-change: transform;
 }
 
 .apotheoza-halo-scene.down {
@@ -190,13 +199,12 @@
   position: relative !important;
   width: 100% !important;
   height: var(--halo-row-h, 13px) !important;
-  perspective: 900px !important;
-  perspective-origin: 50% 50% !important;
   transform-style: preserve-3d !important;
   transform: rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg));
   background: transparent !important;
   border: none !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .apotheoza-halo-cylinder {
@@ -209,53 +217,58 @@
   animation-timing-function: linear !important;
   animation-iteration-count: infinite !important;
   will-change: transform;
+  contain: layout style;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .apotheoza-halo-row:nth-child(even) .apotheoza-halo-cylinder {
   animation-name: apotheoza-halo-spin-cw !important;
-  animation-duration: 15s !important; /* lowered rotation speed by 40% */
+  animation-duration: 15s !important;
 }
 
 .apotheoza-halo-row:nth-child(odd) .apotheoza-halo-cylinder {
   animation-name: apotheoza-halo-spin-ccw !important;
-  animation-duration: 15s !important; /* lowered rotation speed by 40% */
+  animation-duration: 15s !important;
 }
 
-/* Pure single-axis rotateY animations compile directly to GPU compositor matrices */
+/* Pure single-axis rotateY animations compile directly to GPU compositor matrices without translation */
 @keyframes apotheoza-halo-spin-cw {
-  from { transform: translate(-50%, -50%) rotateY(0deg); }
-  to   { transform: translate(-50%, -50%) rotateY(360deg); }
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
 }
 
 @keyframes apotheoza-halo-spin-ccw {
-  from { transform: translate(-50%, -50%) rotateY(360deg); }
-  to   { transform: translate(-50%, -50%) rotateY(0deg); }
+  from { transform: rotateY(360deg); }
+  to   { transform: rotateY(0deg); }
 }
 
 .apotheoza-halo-glyph {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-  transform-origin: 0 0 !important;
+  transform-origin: center center !important;
   white-space: nowrap !important;
   text-transform: uppercase !important;
   -webkit-font-smoothing: antialiased !important;
-  /* [TEXT COLOR & GLOW COLOR] Text: #B05348 | Glow: #a80020 / #f87858 */
+  /* Text: #B05348 with GPU-cached font shadow instead of full-scene Gaussian blur */
   color: #B05348 !important;
   font-family: 'VCR OSD Mono', monospace !important;
   font-size: 12.5px !important;
   font-weight: 700 !important;
   letter-spacing: -0.2px !important;
   word-spacing: -4px !important;
-  /* High-performance multi-stage glow without excess Gaussian convolution passes */
-  text-shadow:
-    0 0 3px #a80020,
-    0 0 8px #f87858,
-    0 0 16px #a80020 !important;
+  text-shadow: 0 0 3px #f87858, 0 0 8px rgba(168, 0, 32, 0.7) !important;
   backface-visibility: hidden !important;
   -webkit-backface-visibility: hidden !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
   user-select: none !important;
+  transition: color 0.15s ease;
+}
+
+.apotheoza-halo-glyph:hover {
+  color: #ff7868 !important;
 }
 
 .apotheoza-halo-glyph.is-space {

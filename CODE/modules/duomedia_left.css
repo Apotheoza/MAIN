@@ -1,4 +1,4 @@
-/* Fixed sizing for host module item in the left flank */
+/* Fixed wrapper for left sidebar - stretches from left: 0 all the way to center boundary */
 .user-profile-module-item:has(.apotheoza-duomedia-wrapper),
 #moduleItem_duomedia_left {
   position: fixed !important;
@@ -14,9 +14,12 @@
   display: flex !important;
   flex-direction: column !important;
   background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
-/* Drag bar sits clearly at the top when viewing own profile */
+/* Drag bar sits clearly at top when editing */
 .user-profile-module-item:has(.apotheoza-duomedia-wrapper) .module-drag-bar,
 #moduleItem_duomedia_left .module-drag-bar {
   position: relative !important;
@@ -27,8 +30,27 @@
   cursor: grab !important;
 }
 
-/* Continuous vertical divider between left sidebar and main content - goes all the way to bottom */
+.apotheoza-duomedia-wrapper {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-evenly !important; /* evenly distributes media 1 and 2 within viewport */
+  align-items: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  pointer-events: auto !important;
+}
+
+/* Continuous Vertical Dividing Line between left sidebar and center main */
 .apotheoza-v-line {
+  display: block !important;
   position: fixed !important;
   top: 0 !important;
   bottom: 0 !important;
@@ -41,72 +63,76 @@
   z-index: 50 !important;
 }
 
-/* Inner wrapper spanning from left edge of screen to middle content */
-.apotheoza-duomedia-wrapper {
-  position: relative !important;
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-start !important;
-  gap: 16px !important;
-  padding-top: 16px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important; /* No gap between video and vertical line */
-  background: transparent !important;
-  pointer-events: auto !important;
-}
-
-.apotheoza-media-box {
-  width: 100% !important;
-  max-width: 100% !important;
-  background: transparent !important;
-  overflow: hidden !important;
-  pointer-events: auto !important;
-  border: none !important;
-  outline: none !important;
-}
-
-.apotheoza-media-img {
-  width: 100% !important;
-  height: auto !important;
-  display: block !important;
-  image-rendering: pixelated;
-  border: none !important;
-  outline: none !important;
-}
-
-/* Media 1: trimmed 20% from top, moved up by 20%, takes priority when overlap occurs */
+/* Media 1: Screen priority over Media 2, full width, strictly uncropped */
 #duoSlot1 {
+  width: 100% !important;
+  max-width: 100% !important;
   position: relative !important;
-  z-index: 10 !important; /* Higher priority than media 2 */
-  width: 100%;
+  z-index: 20 !important; /* screen priority over Media 2 */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   background: transparent !important;
-  transform: translateY(-20%);
-  margin-bottom: -10%;
+  overflow: visible !important; /* strictly uncropped */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 #duoSlot1 .apotheoza-media-img {
-  clip-path: inset(16% 0 0 0); /* trim 20% from top */
-  margin-top: -16%; /* remove empty top space from crop */
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  max-width: 100% !important;
+  object-fit: contain !important; /* completely uncropped */
+  display: block !important;
+  image-rendering: pixelated;
+  transform: none !important;
+  transition: none !important;
+  pointer-events: auto !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* Crop 5% off the bottom of media 2 */
+/* Media 2: Sits below Media 1 with lower z-index */
 #duoSlot2 {
+  width: 100% !important;
+  max-width: 100% !important;
   position: relative !important;
-  z-index: 1 !important; /* Lower priority so media 1 takes priority */
-  width: 100%;
+  z-index: 10 !important; /* lower priority than Media 1 */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   background: transparent !important;
-  margin-top: -10%;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1 1 auto !important;
 }
 
 #duoSlot2 .apotheoza-media-img {
-  clip-path: inset(8% 0 5% 0);
-  margin-bottom: -5%;
-   margin-top: -8%;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  image-rendering: pixelated;
+  transform: none !important;
+  transition: none !important;
+  pointer-events: auto !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.apotheoza-media-box:hover .apotheoza-media-img {
+  transform: none !important;
 }
 
 @media (max-width: 1200px) {

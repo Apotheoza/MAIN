@@ -19,66 +19,112 @@
 
 <script>
 (function() {
-  async function fetchWritingData(user, fallbackFiles, defaultWords) {
+  async function fetchWritingData(user) {
     try {
       const res = await fetch(`/api/user/${encodeURIComponent(user)}/writing-text`);
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data?.lines) && data.lines.length > 0) {
-          const targetUrl = data.url || (data.path ? `/file.html?owner=${encodeURIComponent(user)}&path=${encodeURIComponent(data.path)}` : null);
-          return { lines: data.lines, url: targetUrl };
+        if (data && Array.isArray(data.lines) && data.lines.length > 0) {
+          return data;
         }
       }
-    } catch (_) {}
+    } catch (e) {}
+    return null;
+  }
 
-    for (const p of fallbackFiles) {
+  async function fetchFallbackLines(filePaths, user) {
+    for (const p of filePaths) {
       try {
         const res = await fetch(p);
         if (res.ok) {
           const raw = await res.text();
           const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-          if (lines.length > 0) return { lines, url: `/user/${encodeURIComponent(user)}/folder?path=main/WRITING` };
+          if (lines.length > 0) {
+            let extractedPath = '';
+            try {
+              const u = new URL(p, window.location.origin);
+              extractedPath = u.searchParams.get('path') || '';
+            } catch (_) {
+              extractedPath = p;
+            }
+            const fileName = extractedPath.split(/[\\/]/).pop() || 'text.txt';
+            return {
+              lines,
+              file: fileName,
+              path: extractedPath,
+              url: `/file.html?owner=${encodeURIComponent(user)}&path=${encodeURIComponent(extractedPath)}`
+            };
+          }
         }
-      } catch (_) {}
+      } catch (e) {}
     }
-
-    return { lines: defaultWords, url: `/user/${encodeURIComponent(user)}/folder?path=main/WRITING` };
+    return null;
   }
 
-  async function setupHaloCylinder(sceneId, user, fallbackFiles, defaultWords) {
+  async function setupHaloCylinder(sceneId, user, filePaths, defaultWords) {
     const scene = document.getElementById(sceneId);
     if (!scene) return;
 
-    const { lines: words, url: targetUrl } = await fetchWritingData(user, fallbackFiles, defaultWords);
-    scene.innerHTML = '';
+    // 1. Fetch random lines and source file info from writing folder
+    const writingData = await fetchWritingData(user);
+    let words = writingData?.lines || null;
+    let fileInfo = writingData && writingData.path
+      ? { file: writingData.file, path: writingData.path, url: writingData.url }
+      : null;
 
-    if (targetUrl) {
-      scene.style.cursor = 'pointer';
-      scene.title = 'Click to view writing source file';
-      const navigateToTarget = (e) => {
-        e.stopPropagation();
-        window.location.href = targetUrl;
-      };
-      scene.onclick = navigateToTarget;
-
-      const parentSection = scene.closest('.apotheoza-cylinder-section');
-      if (parentSection) {
-        parentSection.style.cursor = 'pointer';
-        parentSection.title = 'Click to view writing source file';
-        parentSection.onclick = navigateToTarget;
+    // 2. Fallback to static module text files if writing folder has no files
+    if (!words || words.length === 0) {
+      const fallback = await fetchFallbackLines(filePaths, user);
+      if (fallback) {
+        words = fallback.lines;
+        fileInfo = { file: fallback.file, path: fallback.path, url: fallback.url };
       }
     }
 
+    // 3. Ultimate fallback
+    if (!words || words.length === 0) {
+      words = defaultWords;
+      fileInfo = { file: 'WRITING', path: 'main/WRITING', url: `/folder.html?owner=${encodeURIComponent(user)}&path=main/WRITING` };
+    }
+
+    scene.innerHTML = '';
     const flankWidth = scene.clientWidth || scene.parentElement?.clientWidth || 360;
     const radius = Math.min(180, Math.max(120, Math.round(flankWidth * 0.44)));
 
+    // Target URL to forward when clicking the text
+    const targetUrl = fileInfo?.url || (fileInfo?.path
+      ? `/file.html?owner=${encodeURIComponent(user)}&path=${encodeURIComponent(fileInfo.path)}`
+      : `/folder.html?owner=${encodeURIComponent(user)}&path=main/WRITING`);
+
+    const forwardToSource = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.location.href = targetUrl;
+    };
+
+    scene.style.cursor = 'pointer';
+    scene.title = `Source: ${fileInfo?.file || 'Writing'} (Click to view)`;
+    scene.onclick = forwardToSource;
+
+    const parentSection = scene.closest('.apotheoza-cylinder-section');
+    if (parentSection) {
+      parentSection.style.cursor = 'pointer';
+      parentSection.title = `Source: ${fileInfo?.file || 'Writing'} (Click to view)`;
+      parentSection.onclick = forwardToSource;
+    }
+
+    // Remove any leftover link tags if present
+    const oldLink = scene.parentElement?.querySelector('.apotheoza-cylinder-source-link');
+    if (oldLink) oldLink.remove();
+
+    // Ensure exactly 5 rows for rich cylinder stack
     let fiveRows = [...words];
     while (fiveRows.length < 5) {
       fiveRows = fiveRows.concat(words);
     }
     fiveRows = fiveRows.slice(0, 5);
-
-    const frag = document.createDocumentFragment();
 
     fiveRows.forEach((word) => {
       const row = document.createElement('div');
@@ -87,40 +133,61 @@
       const cylinder = document.createElement('div');
       cylinder.className = 'apotheoza-halo-cylinder';
 
-      let baseStr = word.trim().replace(/\s+/g, ' ');
-      if (!baseStr.endsWith(' ') && !baseStr.endsWith('•') && !baseStr.endsWith('-')) {
-        baseStr += ' ';
-      }
+      // Clean spacing between repeated phrases
+      let baseStr = word.replace(/\s+/g, ' ').trim() + '   ';
 
-      // Seamless 3D perimeter density without excessive off-screen glyph stacking
-      const targetCount = 58;
+      // Optimized glyph count: 36 characters per ring (10 deg step) for CPU efficiency and smooth geometry
+      const targetCount = 36;
       const repeatCount = Math.max(2, Math.ceil(targetCount / baseStr.length));
-      const fullText = baseStr.repeat(repeatCount);
+      const fullText = baseStr.repeat(repeatCount).slice(0, targetCount);
       const chars = fullText.split('');
       const n = chars.length;
-      const stepAngle = 360 / n;
 
       chars.forEach((ch, i) => {
         const span = document.createElement('span');
         span.className = 'apotheoza-halo-glyph' + (ch === ' ' ? ' is-space' : '');
         span.textContent = ch === ' ' ? '\u00A0' : ch;
-        span.style.transform = `rotateY(${stepAngle * i}deg) translateZ(${radius}px) translate(-50%, -50%)`;
+        const angle = (360 / n) * i;
+        span.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
         cylinder.appendChild(span);
       });
 
       row.appendChild(cylinder);
-      frag.appendChild(row);
+      scene.appendChild(row);
     });
 
-    scene.appendChild(frag);
+    // CPU Optimization: Pause rotation when offscreen or hidden in background tab
+    if (typeof IntersectionObserver !== 'undefined' && parentSection) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const isVisible = entry.isIntersecting && !document.hidden;
+          const cylinders = scene.querySelectorAll('.apotheoza-halo-cylinder');
+          cylinders.forEach(c => {
+            c.style.animationPlayState = isVisible ? 'running' : 'paused';
+          });
+        });
+      }, { threshold: 0.05 });
+      observer.observe(parentSection);
+    }
+  }
+
+  // Global tab visibility listener to pause CPU consumption in background tabs
+  if (!window._apotheozaVisibilityListenerAttached) {
+    window._apotheozaVisibilityListenerAttached = true;
+    document.addEventListener('visibilitychange', () => {
+      const isVisible = !document.hidden;
+      document.querySelectorAll('.apotheoza-halo-cylinder').forEach(c => {
+        c.style.animationPlayState = isVisible ? 'running' : 'paused';
+      });
+    });
   }
 
   const defaultTop = ["HELLO WORLD", "TUBULAR TEXT", "EASY TO EDIT"];
   const defaultBottom = ["APOTHEOZA", "TREE ARCHIVE", "ROTATING TEXT"];
 
-  function init() {
-    const match = window.location.pathname.match(/\/user\/([^\/]+)/);
-    const user = match ? decodeURIComponent(match[1]) : '{{USERNAME}}';
+  function run() {
+    const userMatch = window.location.pathname.match(/\/user\/([^\/]+)/);
+    const user = userMatch ? decodeURIComponent(userMatch[1]) : '{{USERNAME}}';
 
     setupHaloCylinder('cylinderWrapTop', user, [
       `/api/user/${encodeURIComponent(user)}/raw?path=info/modules/text1.txt`,
@@ -133,7 +200,8 @@
     ], defaultBottom);
   }
 
-  init();
-  window.initApotheozaRightCylinders = init;
+  run();
+  window.initApotheozaRightCylinders = run;
 })();
 </script>
+<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" style="display:none;" onload="if(window.initApotheozaRightCylinders) window.initApotheozaRightCylinders();" />
