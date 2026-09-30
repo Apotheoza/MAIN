@@ -2,10 +2,10 @@
   <div class="apotheoza-v-line"></div>
 
   <div class="apotheoza-media-box" id="duoSlot1">
-    <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media1.mov"></video>
+    <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media1.mov" onended="this.currentTime=0;this.play();" onpause="if(this.duration && this.currentTime>=this.duration-0.35){this.currentTime=0;this.play();}"></video>
   </div>
 
   <div class="apotheoza-media-box" id="duoSlot2">
-    <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media2.mov"></video>
+    <video autoplay loop muted playsinline class="apotheoza-media-img" src="/api/user/{{USERNAME}}/raw?path=info/modules/media2.mov" onended="this.currentTime=0;this.play();" onpause="if(this.duration && this.currentTime>=this.duration-0.35){this.currentTime=0;this.play();}"></video>
   </div>
 </div>
