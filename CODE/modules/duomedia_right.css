@@ -170,25 +170,110 @@
 .apotheoza-halo-scene {
   display: flex !important;
   flex-direction: column !important;
+  gap: var(--halo-row-gap, 0px) !important;
   align-items: center !important;
   justify-content: center !important;
   width: 100% !important;
-  height: 110px !important;
   background: transparent !important;
   pointer-events: auto !important;
   cursor: pointer !important;
   user-select: none !important;
   overflow: visible !important;
-  position: relative !important;
+  perspective: 900px !important;
+  perspective-origin: 50% 50% !important;
+  transform-style: preserve-3d !important;
+  will-change: transform;
 }
 
-.apotheoza-cylinder-canvas {
-  display: block !important;
+.apotheoza-halo-scene.down {
+  --tilt-x: 8deg;
+  --tilt-z: -1.5deg;
+}
+
+.apotheoza-halo-scene.up {
+  --tilt-x: -8deg;
+  --tilt-z: 1.5deg;
+}
+
+.apotheoza-halo-row {
+  position: relative !important;
   width: 100% !important;
-  height: 110px !important;
+  height: var(--halo-row-h, 13px) !important;
+  transform-style: preserve-3d !important;
+  transform: rotateX(var(--tilt-x, 8deg)) rotateZ(var(--tilt-z, -1.5deg));
   background: transparent !important;
+  border: none !important;
   pointer-events: auto !important;
   cursor: pointer !important;
+}
+
+.apotheoza-halo-cylinder {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 0 !important;
+  height: 0 !important;
+  transform-style: preserve-3d !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+  will-change: transform;
+  contain: layout style;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.apotheoza-halo-row:nth-child(even) .apotheoza-halo-cylinder {
+  animation-name: apotheoza-halo-spin-cw !important;
+  animation-duration: 15s !important;
+}
+
+.apotheoza-halo-row:nth-child(odd) .apotheoza-halo-cylinder {
+  animation-name: apotheoza-halo-spin-ccw !important;
+  animation-duration: 15s !important;
+}
+
+/* Pure single-axis rotateY animations compile directly to GPU compositor matrices without translation */
+@keyframes apotheoza-halo-spin-cw {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@keyframes apotheoza-halo-spin-ccw {
+  from { transform: rotateY(360deg); }
+  to   { transform: rotateY(0deg); }
+}
+
+.apotheoza-halo-glyph {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform-origin: center center !important;
+  white-space: nowrap !important;
+  text-transform: uppercase !important;
+  -webkit-font-smoothing: antialiased !important;
+  /* Text: #B05348 with GPU-cached font shadow instead of full-scene Gaussian blur */
+  color: #B05348 !important;
+  font-family: 'VCR OSD Mono', monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.3px !important;
+  word-spacing: -3px !important;
+  text-shadow: 0 0 3px #f87858, 0 0 8px rgba(168, 0, 32, 0.7) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: color 0.15s ease;
+}
+
+.apotheoza-halo-glyph:hover {
+  color: #ff7868 !important;
+}
+
+.apotheoza-halo-glyph.is-space {
+  width: 5px !important;
+  text-align: center !important;
 }
 
 @media (max-width: 1200px) {
