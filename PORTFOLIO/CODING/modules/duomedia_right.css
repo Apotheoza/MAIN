@@ -107,6 +107,21 @@
   margin-bottom: 0 !important;
 }
 
+.apotheoza-media-box-right,
+#duoSlot3,
+.apotheoza-media-box-right .apotheoza-media-img {
+  cursor: pointer !important;
+}
+
+.apotheoza-media-box-right .apotheoza-media-link {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
 /* Halo 3D Cylinders (Top & Bottom of Right Flank) - dense 5 rows */
 :root {
   --halo-row-h: 13px; /* height of each text row */

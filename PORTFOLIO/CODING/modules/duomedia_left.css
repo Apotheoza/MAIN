@@ -135,6 +135,20 @@
   transform: none !important;
 }
 
+.apotheoza-media-link {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+#duoSlot1, #duoSlot2,
+#duoSlot1 .apotheoza-media-img, #duoSlot2 .apotheoza-media-img {
+  cursor: pointer !important;
+}
+
 @media (max-width: 1200px) {
   .apotheoza-duomedia-wrapper,
   .user-profile-module-item:has(.apotheoza-duomedia-wrapper),
